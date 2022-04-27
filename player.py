@@ -72,7 +72,7 @@ def on_message(mqttc, userdata, msg):
         waiting = True
         if ('clients/flota/sala/' in msg.topic) and waiting:
             waiting = False
-            start_game()
+            #start_game()
 
     except:
         traceback.print_exc()
@@ -116,7 +116,7 @@ def main():
     mqttc.connect("picluster02.mat.ucm.es")
 
     mqttc.subscribe('clients/flota/sala/' + name)
-    print('clients/flota/sala/' + name)
+    print('CCCCCCCCCCCCCCCC', 'clients/flota/sala/' + name)
     mqttc.publish('clients/flota/jugador', player.name + player.board.barcos_to_string())
     
     mqttc.loop_forever()
