@@ -10,9 +10,9 @@ from tkinter import *
 import random
 import traceback
 
-ANCHO = 5
-ALTO = 5
-BARCOS = 3
+ANCHO = 3
+ALTO = 3
+BARCOS = 2
 
 
 class Player():
@@ -34,7 +34,7 @@ class Board():
         posinit = sorted(random.sample(range(self.ancho*self.alto), BARCOS))
         tabinit = [[0 for i in range(self.ancho)] for j in range(self.alto)]
         for i in posinit:
-            tabinit[i//self.ancho][i%self.ancho] = 1
+            tabinit[i//self.ancho][i % self.ancho] = 1
         return tabinit
 
     def barcos_to_string(self):
@@ -54,11 +54,15 @@ class Board():
 
         return mostrar
 
-def start_game():
-    finished = False
-    print('JUEGO EMPEZADO')
-    while not finished:
-        pos = input('Donde quieres atacar: ')
+def jugada(mqttc, name):
+    # finished = False
+    # while not finished:
+    print('Donde quieres atacar:')
+    fila = input('Fila: ')
+    columna = input('Columna: ')
+    print(f'clients/flota/jugador/{name}')
+    # mqttc.publish(f'clients/flota/jugador/{name}', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
+    mqttc.publish(f'clients/flota/jugador/{name}', f'{name} {fila} {columna}')
 
 def on_connect(mqttc, userdata, flags, rc):
     try:
@@ -66,13 +70,14 @@ def on_connect(mqttc, userdata, flags, rc):
     except:
         traceback.print_exc()
 
-def on_message(mqttc, userdata, msg):
+def on_message(mqttc, userdata, msg, player):
     try:
-        print("MESSAGE:", userdata, msg.topic, msg.qos, msg.payload)
-        waiting = True
-        if ('clients/flota/sala/' in msg.topic) and waiting:
-            waiting = False
-            #start_game()
+        # print("MESSAGE:", userdata, msg.topic, msg.qos, msg.payload)
+        boards = msg.payload.decode()[:-1]
+        game_status = int(msg.payload.decode()[-1])
+        if ('clients/flota/sala/' in msg.topic) and game_status == 1:
+            print(boards)
+            jugada(mqttc, player.name)
 
     except:
         traceback.print_exc()
@@ -107,16 +112,15 @@ def main():
 
     mqttc = Client(userdata=name)
 
-    mqttc.on_message = on_message
-    mqttc.on_connect = on_connect
-    mqttc.on_publish = on_publish
-    mqttc.on_subscribe = on_subscribe
-    mqttc.on_unsubscribe = on_unsubscribe
+    mqttc.on_message = lambda mqttc, userdata, msg: on_message(mqttc, userdata, msg, player)
+    # mqttc.on_connect = on_connect
+    # mqttc.on_publish = on_publish
+    # mqttc.on_subscribe = on_subscribe
+    # mqttc.on_unsubscribe = on_unsubscribe
 
     mqttc.connect("picluster02.mat.ucm.es")
 
     mqttc.subscribe('clients/flota/sala/' + name)
-    print('CCCCCCCCCCCCCCCC', 'clients/flota/sala/' + name)
     mqttc.publish('clients/flota/jugador', player.name + player.board.barcos_to_string())
     
     mqttc.loop_forever()

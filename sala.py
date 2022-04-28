@@ -11,9 +11,9 @@ from tkinter import *
 import random
 import traceback
 
-ANCHO = 5
-ALTO = 5
-BARCOS = 3
+ANCHO = 3
+ALTO = 3
+BARCOS = 2
 
 
 class Player():
@@ -38,7 +38,7 @@ class Board():
         return tab
 
     def actualizar(self, pos):
-        self.status[pos[1]][pos[0]] = 1
+        self.status[pos[0]][pos[1]] = 1
 
 class Game():
     def __init__(self):
@@ -57,9 +57,10 @@ class Game():
     
     def show_status(self, jug):
         mostrar = ''
+        print(jug.name, ' --> ', jug.board.barcos)
         for i in range(len(jug.board.status)):
-            for j in jug.board.status[i]:
-                if j == 1:
+            for j in range(len(jug.board.status[i])):
+                if jug.board.status[i][j] == 1:
                     mostrar += '|' + str(jug.board.barcos[i][j])
                 else:
                     mostrar += '|' + ' '
@@ -68,11 +69,11 @@ class Game():
         return mostrar
 
     def show_boards(self, jug):
-        jugboard = self.show_boats(jug)
+        jugboard = 'Tu tablero:\n' + self.show_boats(jug)
         if jug == self.jugadores[0]:
-            otherboard = self.show_status(self.jugadores[1])
+            otherboard = f'Tablero de {self.jugadores[1].name}:\n' + self.show_status(self.jugadores[1])
         else:
-            otherboard = self.show_status(self.jugadores[0])
+            otherboard = f'Tablero de {self.jugadores[0].name}:\n' + self.show_status(self.jugadores[0])
             
         return jugboard + '\n' + otherboard
 
@@ -93,20 +94,34 @@ def on_message(mqttc, userdata, msg, game):
             name = str(data[0])[2:-1]
             pos = []
             for i in data[1:]:
-                pos.append((int(str(i)[2]),int(str(i)[4])))
+                pos.append((int(str(i)[2]), int(str(i)[4])))
             game.jugadores[game.num_jug] = Player(name, pos)
             game.num_jug += 1
-            mqttc.subscribe(msg.topic + name)
+            mqttc.subscribe(msg.topic + '/' + name)
             
             if game.num_jug == 2:
                 game.status = 1
                 mqttc.unsubscribe('clients/flota/jugador')
-                mqttc.publish('clients/flota/sala/' + game.jugadores[0].name, f'El otro jugador es {game.jugadores[1].name}. ¡HA JUGAR!')
-                mqttc.publish('clients/flota/sala/' + game.jugadores[0].name, game.show_boards(game.jugadores[1]))
-                mqttc.publish('clients/flota/sala/' + game.jugadores[1].name, f'El otro jugador es {game.jugadores[0].name}. ¡HA JUGAR!')
-                mqttc.publish('clients/flota/sala/' + game.jugadores[1].name, game.show_boards(game.jugadores[0]))
+                mqttc.publish(f'clients/flota/sala/{game.jugadores[0].name}', f'El otro jugador es {game.jugadores[1].name}. ¡HA JUGAR!0')
+                mqttc.publish(f'clients/flota/sala/{game.jugadores[0].name}', game.show_boards(game.jugadores[0]) + str(game.status))
+                mqttc.publish(f'clients/flota/sala/{game.jugadores[1].name}', f'El otro jugador es {game.jugadores[0].name}. ¡HA JUGAR!0')
+                mqttc.publish(f'clients/flota/sala/{game.jugadores[1].name}', game.show_boards(game.jugadores[1]) + str(game.status))
             
-            print('clients/flota/sala/' + name)
+            print(f'clients/flota/sala/{name}')
+        else:
+            print('MENSAJE --> ', msg.payload)
+            name = msg.payload.decode().split()[0]
+            fila = int(msg.payload.decode().split()[1])
+            columna = int(msg.payload.decode().split()[2])
+            print(name, fila, columna)
+
+            if name == game.jugadores[0].name:
+                game.jugadores[1].board.actualizar((fila, columna))
+            elif name == game.jugadores[1].name:
+                game.jugadores[0].board.actualizar((fila, columna))
+            mqttc.publish(f'clients/flota/sala/{game.jugadores[0].name}', game.show_boards(game.jugadores[0]) + str(game.status))
+            mqttc.publish(f'clients/flota/sala/{game.jugadores[1].name}', game.show_boards(game.jugadores[1]) + str(game.status))
+
 
     except:
         traceback.print_exc()
@@ -136,10 +151,10 @@ def main():
     mqttc = Client(userdata='sala')
     
     mqttc.on_message = lambda mqttc, userdata, msg: on_message(mqttc, userdata, msg, game)
-    mqttc.on_connect = on_connect
-    mqttc.on_publish = on_publish
-    mqttc.on_subscribe = on_subscribe
-    mqttc.on_unsubscribe = on_unsubscribe
+    # mqttc.on_connect = on_connect
+    # mqttc.on_publish = on_publish
+    # mqttc.on_subscribe = on_subscribe
+    # mqttc.on_unsubscribe = on_unsubscribe
 
     mqttc.connect("picluster02.mat.ucm.es")
     mqttc.subscribe('clients/flota/jugador')
