@@ -54,6 +54,57 @@ class Board():
 
         return mostrar
 
+class Interface():
+    def __init__(self):
+        self.root = Tk() # Ventana Principal
+        self.root.title("Silk the float") # Título
+        self.root.resizable(0,0) # (0,0) = No se puede ampliar, (1,1) = sí
+
+        # Título
+        self.headboard = Label(self.root, text = "Bienvenid@ a Hundir la Flota")
+        self.headboard.grid (row = 0, column = 11, columnspan = 2)
+        self.headboard.config(fg = "blue",    # Foreground (Color delante)
+                         bg = "grey",    # Background (Color detrás)
+                         font = ("Verdana", 10)
+                        )
+    
+    # Cambia el color del boton al clickar
+    def clickBot (self, event):
+        print("ssssssssssssssssssssssssssss", self.button.grid)
+        if event.widget["bg"] == "grey": # cuidao, si es agua, azul, si es tocado, rojo
+
+            # (No se queda el mismo color) messagebox.showerror("Hundir La Flota", "Ahí ya cayó un misil")
+            event.widget["bg"] = "#00FFFF"
+        else:
+            pass    
+
+    def graph_board_other (self, board, pos):
+    # Tablero Player 1:     
+        for i in range(pos[0], ALTO + 2):
+            for j in range(pos[1], ANCHO + 1):
+                self.button = Button(self.root,
+                                    background = "grey",
+                                    foreground = "black",
+                                    bd = 3, # Borde
+                                    padx = "17",
+                                    pady = "5",
+                                    font = ("Verdana", 8),
+                                    width = "1",
+                                    relief = RAISED   # Estilo de los botones
+                                    )
+                self.button.bind("<Button-1>", self.clickBot)
+                self.button ["text"] = str(i - 1), ',' , str(j)     # En cada casilla hay escrita su coordenada
+                self.button.grid(row = i, column = j)       # Para organizar todas las casillas
+                labColumn1 = Label(self.root, text = "Col: " + str(j))      # Etiqueta de COLUMNAS
+                labColumn1.grid(row = 12, column = (j))
+            labRow1 = Label(self.root, text = "Fila: " + str(i - 1))        # Etiqueta de FILAS
+            labRow1.grid(row = (i), column = (j + 1))
+        self.root.mainloop()
+    
+    def graph_game (self, player, board):
+        self.graph_board_other(board, (2,1))
+        self.graph_board_self(player.board.barcos, (2,1 + ANCHO + 3))
+
 def jugada(mqttc, name):
     # finished = False
     # while not finished:

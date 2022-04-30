@@ -71,7 +71,7 @@ class Game():
     def show_boards(self, jug):
         jugboard = 'Tu tablero:\n' + self.show_boats(jug)
         if jug == self.jugadores[0]:
-            otherboard = f'Tablero de {self.jugadores[1].name}:\n' + self.show_status(self.jugadores[1])
+            otherboard = f'Tablero de {self.jugadores[1].name}:\n' + self.show_boats(self.jugadores[1])
         else:
             otherboard = f'Tablero de {self.jugadores[0].name}:\n' + self.show_status(self.jugadores[0])
             
@@ -79,59 +79,6 @@ class Game():
 
     def change_board(self, jug, pos):
         jug.board.status[pos[1]][pos[0]] = 1
-
-class Interface():
-    def __init__(self):
-        self.root = Tk() # Ventana Principal
-        self.root.title("Silk the float") # Título
-        self.root.resizable(0,0) # (0,0) = No se puede ampliar, (1,1) = sí
-
-        # Título
-        self.headboard = Label(self.root, text = "Bienvenid@ a Hundir la Flota")
-        self.headboard.grid (row = 0, column = 11, columnspan = 2)
-        self.headboard.config(fg = "blue",    # Foreground (Color delante)
-                         bg = "grey",    # Background (Color detrás)
-                         font = ("Verdana", 10)
-                        )
-
-        # Botones
-        self.button = Button(self.root)
-        self.button.grid()
-        self.button.bind("<Button-1>", self.clickBot)    # Asigna el cambio de color cuando se clickea
-        length = 15
-        width = 15
-    
-    # Cambia el color del fondo al clickar
-    def clickBot (self):
-        if self.widget["bg"] == "grey": # cuidao, si es agua, azul, si es tocado, rojo
-
-            # (No se queda el mismo color) messagebox.showerror("Hundir La Flota", "Ahí ya cayó un misil")
-            self.widget["bg"] = "#00FFFF"
-        else:
-            pass    
-
-    def graph_board (self):
-    # Tablero Player 1:     
-        for i in range(2,12):
-            for j in range(1, 11):
-                self.button = Button(self.root,
-                                    background = "grey",
-                                    foreground = "black",
-                                    bd = 3, # Borde
-                                    padx = "17",
-                                    pady = "5",
-                                    font = ("Verdana", 8),
-                                    width = "1",
-                                    relief = RAISED,   # Estilo de los botones
-                                    )
-                self.button ["text"] = str(i - 1), ',' , str(j)     # En cada casilla hay escrita su coordenada
-                self.button.grid(row = i, column = j)       # Para organizar todas las casillas
-                labColumn1 = Label(self.root, text = "Col: " + str(j))      # Etiqueta de COLUMNAS
-                labColumn1.grid(row = 12, column = (j))
-            labRow1 = Label(self.root, text = "Fila: " + str(i - 1))        # Etiqueta de FILAS
-            labRow1.grid(row = (i), column = (j + 1))
-        self.root.mainloop()
-
 
 def on_connect(mqttc, userdata, flags, rc):
     try:
@@ -215,7 +162,4 @@ def main():
     mqttc.loop_forever()
 
 if __name__ == "__main__":
-    interfaz = Interface()
-    interfaz.graph_board()
-
-#    main()
+    main()
