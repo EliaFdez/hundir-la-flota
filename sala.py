@@ -84,13 +84,12 @@ class Interface():
     def __init__(self):
         self.root = Tk() # Ventana Principal
         self.root.title("Silk the float") # Título
-        self.board = [] # Tablero
         self.root.resizable(0,0) # (0,0) = No se puede ampliar, (1,1) = sí
 
         # Título
-        headboard = Label(self.root, text = "Bienvenid@ a Hundir la Flota")
-        headboard.grid (row = 0, column = 11, columnspan = 2)
-        headboard.config(fg = "blue",    # Foreground (Color delante)
+        self.headboard = Label(self.root, text = "Bienvenid@ a Hundir la Flota")
+        self.headboard.grid (row = 0, column = 11, columnspan = 2)
+        self.headboard.config(fg = "blue",    # Foreground (Color delante)
                          bg = "grey",    # Background (Color detrás)
                          font = ("Verdana", 10)
                         )
@@ -98,11 +97,12 @@ class Interface():
         # Botones
         self.button = Button(self.root)
         self.button.grid()
-        self.button.bind("<Button-1>", self.clickBot1)    # Asigna el cambio de color cuando se clickea
+        self.button.bind("<Button-1>", self.clickBot)    # Asigna el cambio de color cuando se clickea
         length = 15
         width = 15
     
-    def clickBot1 (self, event):
+    # Cambia el color del fondo al clickar
+    def clickBot (self):
         if self.widget["bg"] == "grey": # cuidao, si es agua, azul, si es tocado, rojo
 
             # (No se queda el mismo color) messagebox.showerror("Hundir La Flota", "Ahí ya cayó un misil")
@@ -110,8 +110,7 @@ class Interface():
         else:
             pass    
 
-    def graph_board (self, board):
-
+    def graph_board (self):
     # Tablero Player 1:     
         for i in range(2,12):
             for j in range(1, 11):
@@ -216,4 +215,7 @@ def main():
     mqttc.loop_forever()
 
 if __name__ == "__main__":
-    main()
+    interfaz = Interface()
+    interfaz.graph_board()
+
+#    main()
