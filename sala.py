@@ -97,7 +97,11 @@ def on_message(mqttc, userdata, msg, game):
                 pos.append((int(str(i)[2]), int(str(i)[4])))
             game.jugadores[game.num_jug] = Player(name, pos)
             game.num_jug += 1
+            print('SSSSSSSSSSSSSSSSSSSSS', msg.topic + '/' + name)
             mqttc.subscribe(msg.topic + '/' + name)
+            if game.num_jug == 1:
+                mqttc.publish(f'clients/flota/sala/{game.jugadores[0].name}', 'Esperando a otro jugador0')
+
             
             if game.num_jug == 2:
                 game.status = 1
@@ -153,7 +157,7 @@ def main():
     mqttc.on_message = lambda mqttc, userdata, msg: on_message(mqttc, userdata, msg, game)
     # mqttc.on_connect = on_connect
     # mqttc.on_publish = on_publish
-    # mqttc.on_subscribe = on_subscribe
+    mqttc.on_subscribe = on_subscribe
     # mqttc.on_unsubscribe = on_unsubscribe
 
     mqttc.connect("picluster02.mat.ucm.es")

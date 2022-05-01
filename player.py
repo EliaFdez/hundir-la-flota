@@ -54,57 +54,6 @@ class Board():
 
         return mostrar
 
-class Interface():
-    def __init__(self):
-        self.root = Tk() # Ventana Principal
-        self.root.title("Silk the float") # Título
-        self.root.resizable(0,0) # (0,0) = No se puede ampliar, (1,1) = sí
-
-        # Título
-        self.headboard = Label(self.root, text = "Bienvenid@ a Hundir la Flota")
-        self.headboard.grid (row = 0, column = 11, columnspan = 2)
-        self.headboard.config(fg = "blue",    # Foreground (Color delante)
-                         bg = "grey",    # Background (Color detrás)
-                         font = ("Verdana", 10)
-                        )
-    
-    # Cambia el color del boton al clickar
-    def clickBot (self, event):
-        print("ssssssssssssssssssssssssssss", self.button.grid)
-        if event.widget["bg"] == "grey": # cuidao, si es agua, azul, si es tocado, rojo
-
-            # (No se queda el mismo color) messagebox.showerror("Hundir La Flota", "Ahí ya cayó un misil")
-            event.widget["bg"] = "#00FFFF"
-        else:
-            pass    
-
-    def graph_board_other (self, board, pos):
-    # Tablero Player 1:     
-        for i in range(pos[0], ALTO + 2):
-            for j in range(pos[1], ANCHO + 1):
-                self.button = Button(self.root,
-                                    background = "grey",
-                                    foreground = "black",
-                                    bd = 3, # Borde
-                                    padx = "17",
-                                    pady = "5",
-                                    font = ("Verdana", 8),
-                                    width = "1",
-                                    relief = RAISED   # Estilo de los botones
-                                    )
-                self.button.bind("<Button-1>", self.clickBot)
-                self.button ["text"] = str(i - 1), ',' , str(j)     # En cada casilla hay escrita su coordenada
-                self.button.grid(row = i, column = j)       # Para organizar todas las casillas
-                labColumn1 = Label(self.root, text = "Col: " + str(j))      # Etiqueta de COLUMNAS
-                labColumn1.grid(row = 12, column = (j))
-            labRow1 = Label(self.root, text = "Fila: " + str(i - 1))        # Etiqueta de FILAS
-            labRow1.grid(row = (i), column = (j + 1))
-        self.root.mainloop()
-    
-    def graph_game (self, player, board):
-        self.graph_board_other(board, (2,1))
-        self.graph_board_self(player.board.barcos, (2,1 + ANCHO + 3))
-
 def jugada(mqttc, name):
     # finished = False
     # while not finished:
@@ -115,6 +64,91 @@ def jugada(mqttc, name):
     # mqttc.publish(f'clients/flota/jugador/{name}', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
     mqttc.publish(f'clients/flota/jugador/{name}', f'{name} {fila} {columna}')
 
+def create_interface(mqttc, player):
+    root = Tk() # Ventana Principal
+    root.title("Silk the float") # Título
+    root.resizable(0,0) # (0,0) = No se puede ampliar, (1,1) = sí
+
+    # TítuloS
+    headboard = Label(root, text = "Bienvenid@ a Hundir la Flota")
+    headboard.grid (row = 0, column = ANCHO//2, columnspan = 17)
+    headboard.config(fg = "blue",    # Foreground (Color delante)
+                        bg = "grey",    # Background (Color detrás)
+                        font = ("Verdana", 10)
+                    )
+
+    headboard = Label(root, text = "Tablero del rival")
+    headboard.grid (row = 2, column = 0, columnspan = 17)
+    headboard.config(fg = "blue",    # Foreground (Color delante)
+                        bg = "grey",    # Background (Color detrás)
+                        font = ("Verdana", 10)
+                    )
+
+    headboard = Label(root, text = "Tu tablero")
+    headboard.grid (row = 2, column = ANCHO, columnspan = 17)
+    headboard.config(fg = "blue",    # Foreground (Color delante)
+                        bg = "grey",    # Background (Color detrás)
+                        font = ("Verdana", 10)
+                    )
+    
+    # Tablero rival
+    for i in range(5, ALTO + 5):
+        for j in range(1, ANCHO + 1):
+            button = Button(root,
+                                background = "grey",
+                                foreground = "black",
+                                bd = 3, # Borde
+                                padx = "17",
+                                pady = "5",
+                                font = ("Verdana", 8),
+                                width = "1",
+                                relief = RAISED,
+                                )
+            button.bind("<Button-1>", lambda e, row=i-4, column=j: clickBot((row,column), e, mqttc, player))
+            button ["text"] = str(i - 4), ',' , str(j)     # En cada casilla hay escrita su coordenada
+            button.grid(row = i, column = j)       # Para organizar todas las casillas
+            labColumn1 = Label(root, text = "Col: " + str(j))      # Etiqueta de COLUMNAS
+            labColumn1.grid(row = 12, column = (j))
+        labRow1 = Label(root, text = "Fila: " + str(i - 1))        # Etiqueta de FILAS
+        labRow1.grid(row = (i), column = (j + 1))
+
+    # Tablero propio
+    for i in range(5, ALTO + 5):
+        for j in range(ANCHO + 4, 2*ANCHO + 4):
+            button = Button(root,
+                                background = "#00FFFF" if player.board.barcos[i-5][j-(ANCHO+4)] == 0 else "grey",
+                                foreground = "black",
+                                bd = 3, # Borde
+                                padx = "17",
+                                pady = "5",
+                                font = ("Verdana", 8),
+                                width = "1",
+                                relief = RAISED,
+                                state = DISABLED
+                                )
+            button ["text"] = str(i - 4), ',' , str(j-(ANCHO+3))     # En cada casilla hay escrita su coordenada
+            button.grid(row = i, column = j)       # Para organizar todas las casillas
+            labColumn1 = Label(root, text = "Col: " + str(j))      # Etiqueta de COLUMNAS
+            labColumn1.grid(row = 12, column = (j))
+
+    mqttc.root = root
+    mqttc.loop_start()
+    mqttc.root.mainloop()
+
+def clickBot (pos, event, mqttc, player):
+    print(f'clients/flota/jugador/{player.name}', pos)
+    mqttc.subscribe('clients/flota/patata')
+    mqttc.publish(f'clients/flota/jugador/{player.name}', str(pos))
+
+    if event.widget["bg"] == "grey": # cuidao, si es agua, azul, si es tocado, rojo
+
+        # (No se queda el mismo color) messagebox.showerror("Hundir La Flota", "Ahí ya cayó un misil")
+        event.widget["bg"] = "#00FFFF"
+        #button.state = DISABLED
+    else:
+        pass    
+
+
 def on_connect(mqttc, userdata, flags, rc):
     try:
         print("CONNECT:", userdata, flags, rc)
@@ -123,16 +157,16 @@ def on_connect(mqttc, userdata, flags, rc):
 
 def on_message(mqttc, userdata, msg, player):
     try:
-        # print("MESSAGE:", userdata, msg.topic, msg.qos, msg.payload)
+        print("MESSAGE:", userdata, msg.topic, msg.qos, msg.payload)
         boards = msg.payload.decode()[:-1]
         game_status = int(msg.payload.decode()[-1])
+        print('KDFSJALÑKJFAÑKD --> ', game_status)
         if ('clients/flota/sala/' in msg.topic) and game_status == 1:
             print(boards)
-            jugada(mqttc, player.name)
+            #jugada(mqttc, player.name)
 
     except:
         traceback.print_exc()
-
 
 def on_publish(mqttc, userdata, mid):
     try:
@@ -165,8 +199,8 @@ def main():
 
     mqttc.on_message = lambda mqttc, userdata, msg: on_message(mqttc, userdata, msg, player)
     # mqttc.on_connect = on_connect
-    # mqttc.on_publish = on_publish
-    # mqttc.on_subscribe = on_subscribe
+    mqttc.on_publish = on_publish
+    mqttc.on_subscribe = on_subscribe
     # mqttc.on_unsubscribe = on_unsubscribe
 
     mqttc.connect("picluster02.mat.ucm.es")
@@ -174,7 +208,7 @@ def main():
     mqttc.subscribe('clients/flota/sala/' + name)
     mqttc.publish('clients/flota/jugador', player.name + player.board.barcos_to_string())
     
-    mqttc.loop_forever()
+    create_interface(mqttc, player)
 
 if __name__ == "__main__":
     main()
