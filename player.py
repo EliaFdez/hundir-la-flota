@@ -10,9 +10,9 @@ from tkinter import *
 import random
 import traceback
 
-ANCHO = 3
-ALTO = 3
-BARCOS = 2
+ANCHO = 10
+ALTO = 10
+BARCOS = 10
 
 
 class Player():
@@ -60,7 +60,6 @@ def jugada(mqttc, name):
     print('Donde quieres atacar:')
     fila = input('Fila: ')
     columna = input('Columna: ')
-    print(f'clients/flota/jugador/{name}')
     # mqttc.publish(f'clients/flota/jugador/{name}', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
     mqttc.publish(f'clients/flota/jugador/{name}', f'{name} {fila} {columna}')
 
@@ -71,21 +70,21 @@ def create_interface(mqttc, player):
 
     # TítuloS
     headboard = Label(root, text = "Bienvenid@ a Hundir la Flota")
-    headboard.grid (row = 0, column = ANCHO//2, columnspan = 17)
+    headboard.grid (row = 0, column = 0, columnspan = 2*ANCHO + 4)
     headboard.config(fg = "blue",    # Foreground (Color delante)
                         bg = "grey",    # Background (Color detrás)
                         font = ("Verdana", 10)
                     )
 
     headboard = Label(root, text = "Tablero del rival")
-    headboard.grid (row = 2, column = 0, columnspan = 17)
+    headboard.grid (row = 2, column = 1, columnspan = 3)
     headboard.config(fg = "blue",    # Foreground (Color delante)
                         bg = "grey",    # Background (Color detrás)
                         font = ("Verdana", 10)
                     )
 
     headboard = Label(root, text = "Tu tablero")
-    headboard.grid (row = 2, column = ANCHO, columnspan = 17)
+    headboard.grid (row = 2, column = ANCHO + 3, columnspan = 3)
     headboard.config(fg = "blue",    # Foreground (Color delante)
                         bg = "grey",    # Background (Color detrás)
                         font = ("Verdana", 10)
@@ -108,7 +107,7 @@ def create_interface(mqttc, player):
             button ["text"] = str(i - 4), ',' , str(j)     # En cada casilla hay escrita su coordenada
             button.grid(row = i, column = j)       # Para organizar todas las casillas
             labColumn1 = Label(root, text = "Col: " + str(j))      # Etiqueta de COLUMNAS
-            labColumn1.grid(row = 12, column = (j))
+            labColumn1.grid(row = ALTO + 5, column = (j))
         labRow1 = Label(root, text = "Fila: " + str(i - 1))        # Etiqueta de FILAS
         labRow1.grid(row = (i), column = (j + 1))
 
@@ -129,16 +128,14 @@ def create_interface(mqttc, player):
             button ["text"] = str(i - 4), ',' , str(j-(ANCHO+3))     # En cada casilla hay escrita su coordenada
             button.grid(row = i, column = j)       # Para organizar todas las casillas
             labColumn1 = Label(root, text = "Col: " + str(j))      # Etiqueta de COLUMNAS
-            labColumn1.grid(row = 12, column = (j))
+            labColumn1.grid(row = ALTO + 5, column = (j))
 
     mqttc.root = root
     mqttc.loop_start()
     mqttc.root.mainloop()
 
 def clickBot (pos, event, mqttc, player):
-    print(f'clients/flota/jugador/{player.name}', pos)
-    mqttc.subscribe('clients/flota/patata')
-    mqttc.publish(f'clients/flota/jugador/{player.name}', str(pos))
+    mqttc.publish(f'clients/flota/jugador/{player.name}', player.name + ' ' + str(pos[0]-1) + ' ' + str(pos[1]-1))
 
     if event.widget["bg"] == "grey": # cuidao, si es agua, azul, si es tocado, rojo
 
@@ -148,6 +145,37 @@ def clickBot (pos, event, mqttc, player):
     else:
         pass    
 
+def change_btn_color(mqttc, num, fila, columna):
+    print('asdfasdfasdfa')
+    button = Button(mqttc.root,
+                        background = "#77DD77" if num == 0 else "#FF6961",
+                        foreground = "black",
+                        bd = 3, # Borde
+                        padx = "17",
+                        pady = "5",
+                        font = ("Verdana", 8),
+                        width = "1",
+                        relief = RAISED,
+                        state = DISABLED
+                    )
+    button ["text"] = str(fila), ',' , str(columna)    # En cada casilla hay escrita su coordenada
+    button.grid(row = fila + 4, column = columna)
+
+def put_x(mqttc, player, fila, columna):
+    print('asdfasdfasdfa')
+    button = Button(mqttc.root,
+                        background = "#77DD77" if player.board.barcos[fila-1][columna-1] == 0 else "#FF6961",
+                        foreground = "black",
+                        bd = 3, # Borde
+                        padx = "17",
+                        pady = "5",
+                        font = ("Verdana", 8),
+                        width = "1",
+                        relief = RAISED,
+                        state = DISABLED
+                    )
+    button ["text"] = str(fila), ',' , str(columna)    # En cada casilla hay escrita su coordenada
+    button.grid(row = fila + 4, column = columna + ANCHO + 3) 
 
 def on_connect(mqttc, userdata, flags, rc):
     try:
@@ -158,12 +186,15 @@ def on_connect(mqttc, userdata, flags, rc):
 def on_message(mqttc, userdata, msg, player):
     try:
         print("MESSAGE:", userdata, msg.topic, msg.qos, msg.payload)
-        boards = msg.payload.decode()[:-1]
-        game_status = int(msg.payload.decode()[-1])
-        print('KDFSJALÑKJFAÑKD --> ', game_status)
-        if ('clients/flota/sala/' in msg.topic) and game_status == 1:
-            print(boards)
-            #jugada(mqttc, player.name)
+        message = msg.payload.decode().split()
+        if ('clients/flota/sala/' in msg.topic) and len(message) == 3:
+            print('AAAAAAAAAAAAAAAAAAAAA', message)
+            change_btn_color(mqttc, int(message[0]),int(message[1]), int(message[2]))
+        elif ('clients/flota/sala/' in msg.topic) and len(message) == 2:
+            print('BBBBBBBBBBBBBBBBBBBBB', message)
+            put_x(mqttc, player, int(message[0]), int(message[1]))
+
+
 
     except:
         traceback.print_exc()

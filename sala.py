@@ -11,9 +11,9 @@ from tkinter import *
 import random
 import traceback
 
-ANCHO = 3
-ALTO = 3
-BARCOS = 2
+ANCHO = 10
+ALTO = 10
+BARCOS = 10
 
 
 class Player():
@@ -57,7 +57,6 @@ class Game():
     
     def show_status(self, jug):
         mostrar = ''
-        print(jug.name, ' --> ', jug.board.barcos)
         for i in range(len(jug.board.status)):
             for j in range(len(jug.board.status[i])):
                 if jug.board.status[i][j] == 1:
@@ -97,34 +96,32 @@ def on_message(mqttc, userdata, msg, game):
                 pos.append((int(str(i)[2]), int(str(i)[4])))
             game.jugadores[game.num_jug] = Player(name, pos)
             game.num_jug += 1
-            print('SSSSSSSSSSSSSSSSSSSSS', msg.topic + '/' + name)
             mqttc.subscribe(msg.topic + '/' + name)
             if game.num_jug == 1:
-                mqttc.publish(f'clients/flota/sala/{game.jugadores[0].name}', 'Esperando a otro jugador0')
+                mqttc.publish(f'clients/flota/sala/{game.jugadores[0].name}', 'Esperando a otro jugador')
 
             
             if game.num_jug == 2:
                 game.status = 1
                 mqttc.unsubscribe('clients/flota/jugador')
-                mqttc.publish(f'clients/flota/sala/{game.jugadores[0].name}', f'El otro jugador es {game.jugadores[1].name}. ¡HA JUGAR!0')
-                mqttc.publish(f'clients/flota/sala/{game.jugadores[0].name}', game.show_boards(game.jugadores[0]) + str(game.status))
-                mqttc.publish(f'clients/flota/sala/{game.jugadores[1].name}', f'El otro jugador es {game.jugadores[0].name}. ¡HA JUGAR!0')
-                mqttc.publish(f'clients/flota/sala/{game.jugadores[1].name}', game.show_boards(game.jugadores[1]) + str(game.status))
+                mqttc.publish(f'clients/flota/sala/{game.jugadores[0].name}', f'El otro jugador es {game.jugadores[1].name}. ¡HA JUGAR!')
+                mqttc.publish(f'clients/flota/sala/{game.jugadores[0].name}', game.show_boards(game.jugadores[0]))
+                mqttc.publish(f'clients/flota/sala/{game.jugadores[1].name}', f'El otro jugador es {game.jugadores[0].name}. ¡HA JUGAR!')
+                mqttc.publish(f'clients/flota/sala/{game.jugadores[1].name}', game.show_boards(game.jugadores[1]))
             
-            print(f'clients/flota/sala/{name}')
         else:
-            print('MENSAJE --> ', msg.payload)
             name = msg.payload.decode().split()[0]
             fila = int(msg.payload.decode().split()[1])
             columna = int(msg.payload.decode().split()[2])
-            print(name, fila, columna)
 
             if name == game.jugadores[0].name:
                 game.jugadores[1].board.actualizar((fila, columna))
+                mqttc.publish(f'clients/flota/sala/{game.jugadores[0].name}', str(game.jugadores[1].board.barcos[fila][columna]) + ' ' + str(fila+1) + ' ' + str(columna+1))
+                mqttc.publish(f'clients/flota/sala/{game.jugadores[1].name}', str(fila+1) + ' ' + str(columna+1))
             elif name == game.jugadores[1].name:
                 game.jugadores[0].board.actualizar((fila, columna))
-            mqttc.publish(f'clients/flota/sala/{game.jugadores[0].name}', game.show_boards(game.jugadores[0]) + str(game.status))
-            mqttc.publish(f'clients/flota/sala/{game.jugadores[1].name}', game.show_boards(game.jugadores[1]) + str(game.status))
+                mqttc.publish(f'clients/flota/sala/{game.jugadores[1].name}', str(game.jugadores[0].board.barcos[fila][columna]) + ' ' + str(fila+1) + ' ' + str(columna+1))
+                mqttc.publish(f'clients/flota/sala/{game.jugadores[0].name}', str(fila+1) + ' ' + str(columna+1))
 
 
     except:
