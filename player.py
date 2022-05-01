@@ -75,6 +75,12 @@ def create_interface(mqttc, player):
                         bg = "grey",    # Background (Color detrás)
                         font = ("Verdana", 10)
                     )
+    
+    headboard = Label(root)
+    headboard.grid (row = 1, column = 0, columnspan = 1)
+    headboard.config(fg = "white",  
+                     bg = "white" 
+                    )
 
     headboard = Label(root, text = "Tablero del rival")
     headboard.grid (row = 2, column = 1, columnspan = 3)
