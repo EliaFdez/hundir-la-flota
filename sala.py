@@ -11,15 +11,16 @@ from tkinter import *
 import random
 import traceback
 
-ANCHO = 10
-ALTO = 10
-BARCOS = 10
+ANCHO = 5
+ALTO = 5
+BARCOS = 5
 
 
 class Player():
     def __init__(self, name, pos):
         self.name = name
         self.board = Board(pos)
+        self.hits = 0
     
     def __str__(self):
         return self.name
@@ -87,8 +88,12 @@ def on_connect(mqttc, userdata, flags, rc):
 
 def on_message(mqttc, userdata, msg, game):
     try:
-        print("MESSAGE:", userdata, msg.topic, msg.qos, msg.payload,)
-        if msg.topic == 'clients/flota/jugador':
+        #print("MESSAGE:", userdata, msg.topic, msg.qos, msg.payload,)
+        if msg.topic == 'clients/flota/jugador' and game.num_jug == 2:
+            data = msg.payload.split()
+            name = str(data[0])[2:-1]
+            mqttc.publish(f'clients/flota/sala/{name}', 'Partida llena. Vuelva a intentarlo en unos minutos.')
+        elif msg.topic == 'clients/flota/jugador':
             data = msg.payload.split()
             name = str(data[0])[2:-1]
             pos = []
@@ -97,33 +102,30 @@ def on_message(mqttc, userdata, msg, game):
             game.jugadores[game.num_jug] = Player(name, pos)
             game.num_jug += 1
             mqttc.subscribe(msg.topic + '/' + name)
-            if game.num_jug == 1:
-                mqttc.publish(f'clients/flota/sala/{game.jugadores[0].name}', 'Esperando a otro jugador')
-
-            
             if game.num_jug == 2:
+                mqttc.publish(f'clients/flota/sala/{game.jugadores[0].name}', game.jugadores[1].name)
+                mqttc.publish(f'clients/flota/sala/{game.jugadores[1].name}', game.jugadores[0].name)
                 game.status = 1
-                mqttc.unsubscribe('clients/flota/jugador')
-                mqttc.publish(f'clients/flota/sala/{game.jugadores[0].name}', f'El otro jugador es {game.jugadores[1].name}. ¡HA JUGAR!')
-                mqttc.publish(f'clients/flota/sala/{game.jugadores[0].name}', game.show_boards(game.jugadores[0]))
-                mqttc.publish(f'clients/flota/sala/{game.jugadores[1].name}', f'El otro jugador es {game.jugadores[0].name}. ¡HA JUGAR!')
-                mqttc.publish(f'clients/flota/sala/{game.jugadores[1].name}', game.show_boards(game.jugadores[1]))
-            
         else:
             name = msg.payload.decode().split()[0]
             fila = int(msg.payload.decode().split()[1])
             columna = int(msg.payload.decode().split()[2])
 
             if name == game.jugadores[0].name:
-                game.jugadores[1].board.actualizar((fila, columna))
+                game.jugadores[0].hits += game.jugadores[1].board.barcos[fila][columna]
                 mqttc.publish(f'clients/flota/sala/{game.jugadores[0].name}', str(game.jugadores[1].board.barcos[fila][columna]) + ' ' + str(fila+1) + ' ' + str(columna+1))
                 mqttc.publish(f'clients/flota/sala/{game.jugadores[1].name}', str(fila+1) + ' ' + str(columna+1))
+                if game.jugadores[0].hits >= BARCOS:
+                    mqttc.publish(f'clients/flota/sala/{game.jugadores[0].name}', 'Felicidades, ha ganado la partida.')
+                    mqttc.publish(f'clients/flota/sala/{game.jugadores[1].name}', 'Lo siento, ha perdido la partida.')
+
             elif name == game.jugadores[1].name:
-                game.jugadores[0].board.actualizar((fila, columna))
+                game.jugadores[1].hits += game.jugadores[0].board.barcos[fila][columna]
                 mqttc.publish(f'clients/flota/sala/{game.jugadores[1].name}', str(game.jugadores[0].board.barcos[fila][columna]) + ' ' + str(fila+1) + ' ' + str(columna+1))
                 mqttc.publish(f'clients/flota/sala/{game.jugadores[0].name}', str(fila+1) + ' ' + str(columna+1))
-
-
+                if game.jugadores[1].hits >= BARCOS:
+                    mqttc.publish(f'clients/flota/sala/{game.jugadores[1].name}', 'Felicidades, ha ganado la partida.')
+                    mqttc.publish(f'clients/flota/sala/{game.jugadores[0].name}', 'Lo siento, ha perdido la partida.')
     except:
         traceback.print_exc()
 
@@ -154,7 +156,7 @@ def main():
     mqttc.on_message = lambda mqttc, userdata, msg: on_message(mqttc, userdata, msg, game)
     # mqttc.on_connect = on_connect
     # mqttc.on_publish = on_publish
-    mqttc.on_subscribe = on_subscribe
+    #mqttc.on_subscribe = on_subscribe
     # mqttc.on_unsubscribe = on_unsubscribe
 
     mqttc.connect("picluster02.mat.ucm.es")
