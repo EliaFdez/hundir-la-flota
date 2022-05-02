@@ -38,47 +38,11 @@ class Board():
             tab[i[0]][i[1]] = 1
         return tab
 
-    def actualizar(self, pos):
-        self.status[pos[0]][pos[1]] = 1
-
 class Game():
     def __init__(self):
         self.num_jug = 0
         self.jugadores = [Player, Player]
         self.status = 0  # 0 sin empezar, 1 en progreso, 2 finalizado
-    
-    def show_boats(self, jug):
-        mostrar = ''
-        for i in range(len(jug.board.barcos)):
-            for j in jug.board.barcos[i]:
-                mostrar += '|' + str(j)
-            mostrar += '|\n'
-
-        return mostrar
-    
-    def show_status(self, jug):
-        mostrar = ''
-        for i in range(len(jug.board.status)):
-            for j in range(len(jug.board.status[i])):
-                if jug.board.status[i][j] == 1:
-                    mostrar += '|' + str(jug.board.barcos[i][j])
-                else:
-                    mostrar += '|' + ' '
-            mostrar += '|\n'
-
-        return mostrar
-
-    def show_boards(self, jug):
-        jugboard = 'Tu tablero:\n' + self.show_boats(jug)
-        if jug == self.jugadores[0]:
-            otherboard = f'Tablero de {self.jugadores[1].name}:\n' + self.show_boats(self.jugadores[1])
-        else:
-            otherboard = f'Tablero de {self.jugadores[0].name}:\n' + self.show_status(self.jugadores[0])
-            
-        return jugboard + '\n' + otherboard
-
-    def change_board(self, jug, pos):
-        jug.board.status[pos[1]][pos[0]] = 1
 
 def on_connect(mqttc, userdata, flags, rc):
     try:
@@ -160,10 +124,10 @@ def main():
     mqttc = Client(userdata='sala')
     
     mqttc.on_message = lambda mqttc, userdata, msg: on_message(mqttc, userdata, msg, game)
-    # mqttc.on_connect = on_connect
-    # mqttc.on_publish = on_publish
+    #mqttc.on_connect = on_connect
+    #mqttc.on_publish = on_publish
     #mqttc.on_subscribe = on_subscribe
-    # mqttc.on_unsubscribe = on_unsubscribe
+    #mqttc.on_unsubscribe = on_unsubscribe
 
     mqttc.connect("picluster02.mat.ucm.es")
     mqttc.subscribe('clients/flota/jugador')

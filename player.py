@@ -55,15 +55,6 @@ class Board():
 
         return mostrar
 
-def jugada(mqttc, name):
-    # finished = False
-    # while not finished:
-    print('Donde quieres atacar:')
-    fila = input('Fila: ')
-    columna = input('Columna: ')
-    # mqttc.publish(f'clients/flota/jugador/{name}', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
-    mqttc.publish(f'clients/flota/jugador/{name}', f'{name} {fila} {columna}')
-
 def create_interface(mqttc, player):
     root = Tk() # Ventana Principal
     root.title("Silk the float") # Título
@@ -163,14 +154,6 @@ def my_board(player, root, my_headboard):
 
 def clickBot (pos, event, mqttc, player):
     mqttc.publish(f'clients/flota/jugador/{player.name}', player.name + ' ' + str(pos[0]-1) + ' ' + str(pos[1]-1))
-
-    if event.widget["bg"] == "grey": # cuidao, si es agua, azul, si es tocado, rojo
-
-        # (No se queda el mismo color) messagebox.showerror("Hundir La Flota", "Ahí ya cayó un misil")
-        event.widget["bg"] = "#00FFFF"
-        #button.state = DISABLED
-    else:
-        pass    
 
 def change_btn_color(mqttc, num, fila, columna):
     button = Button(mqttc.root,
@@ -277,10 +260,10 @@ def main():
     mqttc = Client(userdata=name)
 
     mqttc.on_message = lambda mqttc, userdata, msg: on_message(mqttc, userdata, msg, player)
-    # mqttc.on_connect = on_connect
+    #mqttc.on_connect = on_connect
     #mqttc.on_publish = on_publish
     #mqttc.on_subscribe = on_subscribe
-    # mqttc.on_unsubscribe = on_unsubscribe
+    #mqttc.on_unsubscribe = on_unsubscribe
 
     mqttc.connect("picluster02.mat.ucm.es")
 
