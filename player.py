@@ -212,7 +212,6 @@ def on_message(mqttc, userdata, msg, player):
     try:
         #print("MESSAGE:", userdata, msg.topic, msg.qos, msg.payload)
         message = msg.payload.decode().split()
-        print('MENSAJE --> ', message)
         if ('clients/flota/sala/' in msg.topic) and len(message) == 1:
             player.other = message[0]
             other_board(mqttc, player)
@@ -233,6 +232,7 @@ def on_message(mqttc, userdata, msg, player):
                                     bg = "white",    # Background (Color detrás)
                                     font = ("Verdana", 20)
                                 )
+                mqttc.loop_stop()
 
             elif message[0] == 'Lo':
                 message = ' '.join(message)
@@ -242,6 +242,7 @@ def on_message(mqttc, userdata, msg, player):
                                     bg = "white",    # Background (Color detrás)
                                     font = ("Verdana", 20)
                                 )
+                mqttc.loop_stop()
 
     except:
         traceback.print_exc()

@@ -118,6 +118,9 @@ def on_message(mqttc, userdata, msg, game):
                 if game.jugadores[0].hits >= BARCOS:
                     mqttc.publish(f'clients/flota/sala/{game.jugadores[0].name}', 'Felicidades, ha ganado la partida.')
                     mqttc.publish(f'clients/flota/sala/{game.jugadores[1].name}', 'Lo siento, ha perdido la partida.')
+                    game.num_jug = 0
+                    game.jugadores = [Player, Player]
+                    game.status = 0
 
             elif name == game.jugadores[1].name:
                 game.jugadores[1].hits += game.jugadores[0].board.barcos[fila][columna]
@@ -126,6 +129,9 @@ def on_message(mqttc, userdata, msg, game):
                 if game.jugadores[1].hits >= BARCOS:
                     mqttc.publish(f'clients/flota/sala/{game.jugadores[1].name}', 'Felicidades, ha ganado la partida.')
                     mqttc.publish(f'clients/flota/sala/{game.jugadores[0].name}', 'Lo siento, ha perdido la partida.')
+                    game.num_jug = 0
+                    game.jugadores = [Player, Player]
+                    game.status = 0
     except:
         traceback.print_exc()
 
