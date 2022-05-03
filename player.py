@@ -124,7 +124,7 @@ def other_board(mqttc, player):
                 button.grid(row = i, column = j)       # Para organizar todas las casillas
                 labColumn1 = Label(mqttc.root, text = "Col: " + str(j))      # Etiqueta de COLUMNAS
                 labColumn1.grid(row = ALTO + 5, column = (j))
-            labRow1 = Label(mqttc.root, text = "Fila: " + str(i - 1))        # Etiqueta de FILAS
+            labRow1 = Label(mqttc.root, text = "Fila: " + str(i - 4))        # Etiqueta de FILAS
             labRow1.grid(row = (i), column = (j + 1))
 
 def my_board(player, root, my_headboard):
@@ -149,7 +149,7 @@ def my_board(player, root, my_headboard):
                                 )
             button ["text"] = str(i - 4), ',' , str(j-(ANCHO+3))     # En cada casilla hay escrita su coordenada
             button.grid(row = i, column = j)       # Para organizar todas las casillas
-            labColumn1 = Label(root, text = "Col: " + str(j))      # Etiqueta de COLUMNAS
+            labColumn1 = Label(root, text = "Col: " + str(j - 8))      # Etiqueta de COLUMNAS
             labColumn1.grid(row = ALTO + 5, column = (j))
 
 def clickBot (pos, event, mqttc, player):
