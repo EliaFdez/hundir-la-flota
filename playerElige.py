@@ -36,7 +36,7 @@ class Board():
         if (aleatorio == 's'):
             tabinit = [[0 for i in range(self.ancho)] for j in range(self.alto)]
             i = 1
-            while i in range(BARCOS):
+            while i in range(BARCOS + 1):
                 print(f'Barquito número {i}')
                 fila = input ('Fila: ')
                 col  = input ('Columna: ')
